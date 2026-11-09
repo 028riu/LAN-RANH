@@ -11,7 +11,10 @@ export function createCamera(app, player) {
   app.root.addChild(entity);
 
   const target = new pc.Vec3();
-  const position = new pc.Vec3();
+  const desiredPosition = new pc.Vec3();
+  const currentPosition = new pc.Vec3(0, 5, 13);
+  entity.setPosition(currentPosition);
+
   return {
     entity,
     update(dt, playerEntity, yaw, pitch) {
@@ -19,13 +22,14 @@ export function createCamera(app, player) {
       target.set(p.x, p.y + 1.15, p.z);
       const distance = 9;
       const horizontal = Math.cos(pitch) * distance;
-      position.set(
+      desiredPosition.set(
         p.x + Math.sin(yaw) * horizontal,
         p.y + 3.1 - pitch * 2.5,
         p.z + Math.cos(yaw) * horizontal
       );
       const alpha = 1 - Math.exp(-8 * dt);
-      entity.getPosition().lerp(entity.getPosition(), position, alpha);
+      currentPosition.lerp(currentPosition, desiredPosition, alpha);
+      entity.setPosition(currentPosition);
       entity.lookAt(target);
     }
   };
