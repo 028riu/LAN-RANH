@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#071522" />
+    <meta name="description" content="Fruit Game ZRT - a 3D island adventure prototype." />
+    <title>Fruit Game ZRT</title>
+  </head>
+  <body>
+    <div id="game-root">
+      <canvas id="game-canvas" aria-label="3D game"></canvas>
+      <div id="loading-screen"><div class="loader-mark">FZ</div><strong>FRUIT GAME ZRT</strong><span>Building the island...</span></div>
+      <header class="topbar">
+        <div class="brand"><span class="brand-icon">F</span><span>FRUIT GAME <b>ZRT</b></span></div>
+        <div class="server-pill"><i></i> ISLAND 001 <span>•</span> SOLO</div>
+      </header>
+      <section class="player-panel">
+        <div class="avatar">⚔</div>
+        <div class="player-info"><strong>ADVENTURER</strong><span>Level <b id="level">1</b></span><div class="xp-track"><i></i></div></div>
+      </section>
+      <section class="status-panel"><div><span>HEALTH</span><b>100 / 100</b></div><div class="bar health"><i></i></div><div class="status-foot"><span>ENERGY</span><b>100 / 100</b></div><div class="bar energy"><i></i></div></section>
+      <div class="location-tag"><span>✦</span><div><small>DISCOVERING</small><b>STARTER ISLAND</b></div></div>
+      <div class="controls-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> <span>MOVE</span><kbd>SHIFT</kbd><span>SPRINT</span><kbd>SPACE</kbd><span>JUMP</span></div>
+      <div class="crosshair">+</div>
+      <div class="mobile-controls" aria-hidden="true"><div class="dpad"><button data-key="w">▲</button><div><button data-key="a">◀</button><button data-key="s">▼</button><button data-key="d">▶</button></div></div><button class="jump-button" data-key=" ">JUMP</button></div>
+      <div class="toast" id="toast">Welcome to Starter Island</div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
