@@ -1,81 +1,83 @@
 import * as pc from 'playcanvas';
+import { WORLD_CONFIG } from './worldConfig.js';
 
-function makePrimitive(app, name, type, position, scale, material) {
-  const entity = new pc.Entity(name);
-  entity.addComponent('render', { type, material });
-  entity.setPosition(...position);
-  entity.setLocalScale(...scale);
-  app.root.addChild(entity);
-  return entity;
+function material(color, roughness = 0.9, emissive = null) {
+  const m = new pc.StandardMaterial();
+  m.diffuse = new pc.Color(color[0], color[1], color[2]);
+  m.roughness = roughness;
+  if (emissive) m.emissive = new pc.Color(emissive[0], emissive[1], emissive[2]);
+  m.update();
+  return m;
 }
 
-function makeMaterial(color, opts = {}) {
-  const material = new pc.StandardMaterial();
-  material.diffuse = new pc.Color(...color);
-  material.roughness = opts.roughness ?? 0.86;
-  if (opts.emissive) material.emissive = new pc.Color(...opts.emissive);
-  material.update();
-  return material;
+function primitive(app, name, type, position, scale, mat) {
+  const e = new pc.Entity(name);
+  e.addComponent('render', { type, material: mat });
+  e.setPosition(position[0], position[1], position[2]);
+  e.setLocalScale(scale[0], scale[1], scale[2]);
+  app.root.addChild(e);
+  return e;
+}
+
+function buildIsland(app, island, mats) {
+  const { x, z, width, depth } = island;
+  const elevation = island.elevation ?? 0;
+  const top = elevation + island.height;
+  primitive(app, island.name + ' rocky mass', 'cylinder',
+    [x, elevation + island.height * 0.30, z],
+    [width * 0.50, island.height * 0.60, depth * 0.50], mats.rock);
+  primitive(app, island.name + ' shoreline', 'cylinder',
+    [x, elevation + island.height * 0.70, z],
+    [width * 0.50, island.height * 0.22, depth * 0.50], mats.sand);
+  primitive(app, island.name + ' terrain', 'sphere',
+    [x, top - 1.2, z], [width * 0.48, 2.6, depth * 0.47], material(island.color));
+
+  const landmarkHeight = Math.max(10, island.height * 1.5);
+  const landmarkMat = island.biome === 'volcanic' ? mats.lavaRock :
+    island.biome === 'frozen' ? mats.ice : mats.landmark;
+  primitive(app, island.name + ' landmark', 'cone',
+    [x + width * 0.12, top + landmarkHeight * 0.42, z - depth * 0.10],
+    [Math.max(8, width * 0.075), landmarkHeight, Math.max(8, depth * 0.075)], landmarkMat);
+  const dock = primitive(app, island.name + ' dock marker', 'box',
+    [x - width * 0.18, top + 1.2, z + depth * 0.42],
+    [Math.max(12, width * 0.24), 2.4, 12], mats.wood);
+  dock.setEulerAngles(0, -18, 0);
+
+  if (island.role === 'floating') {
+    primitive(app, island.name + ' cloud base', 'sphere',
+      [x, elevation - 9, z], [width * 0.55, 12, depth * 0.52], mats.cloud);
+  }
+  if (island.role === 'underwater') {
+    primitive(app, island.name + ' underwater marker', 'sphere',
+      [x, elevation + 18, z], [width * 0.24, 16, depth * 0.24], mats.glass);
+  }
 }
 
 export function createWorld(app) {
-  const sand = makeMaterial([0.76, 0.66, 0.43]);
-  const grass = makeMaterial([0.22, 0.48, 0.29]);
-  const darkGrass = makeMaterial([0.12, 0.31, 0.22]);
-  const stone = makeMaterial([0.36, 0.4, 0.39]);
-  const wood = makeMaterial([0.34, 0.2, 0.12]);
-  const leaf = makeMaterial([0.12, 0.38, 0.23]);
-  const water = makeMaterial([0.035, 0.31, 0.43], { roughness: 0.25 });
-  const gold = makeMaterial([0.9, 0.62, 0.22], { emissive: [0.12, 0.055, 0.008] });
+  const mats = {
+    water: material([0.025, 0.20, 0.29], 0.24),
+    rock: material([0.25, 0.29, 0.30]),
+    sand: material([0.72, 0.61, 0.40]),
+    landmark: material([0.46, 0.36, 0.25]),
+    wood: material([0.30, 0.18, 0.10]),
+    lavaRock: material([0.18, 0.13, 0.12], 0.8, [0.16, 0.035, 0.008]),
+    ice: material([0.62, 0.78, 0.86], 0.35),
+    cloud: material([0.78, 0.85, 0.90], 1),
+    glass: material([0.05, 0.36, 0.47], 0.18, [0.01, 0.08, 0.11])
+  };
+  primitive(app, 'Sea 1 Ocean', 'plane', [0, -2, 0],
+    [WORLD_CONFIG.bounds.width, 1, WORLD_CONFIG.bounds.depth], mats.water);
+  for (const island of WORLD_CONFIG.islands) buildIsland(app, island, mats);
 
-  makePrimitive(app, 'Ocean', 'plane', [0, -1.3, 0], [180, 1, 180], water);
-  makePrimitive(app, 'Island Sand Base', 'cylinder', [0, -0.15, 0], [38, 2.3, 38], sand);
-  makePrimitive(app, 'Island Grass', 'cylinder', [0, 0.72, 0], [34, 1.1, 34], grass);
-  makePrimitive(app, 'Central Meadow', 'sphere', [0, 0.5, 0], [23, 1.2, 23], darkGrass);
-
-  // A small coastal settlement.
-  for (let i = 0; i < 7; i++) {
-    const angle = (i / 7) * Math.PI * 2;
-    const x = Math.cos(angle) * 10;
-    const z = Math.sin(angle) * 10;
-    makePrimitive(app, `Cabin ${i + 1}`, 'box', [x, 2.05, z], [3.2, 3.1, 2.8], wood);
-    makePrimitive(app, `Roof ${i + 1}`, 'cone', [x, 4.2, z], [2.35, 1.45, 2.15], stone);
-  }
-
-  // Stylized palms around the beach and meadow.
-  for (let i = 0; i < 24; i++) {
-    const angle = i * 2.399;
-    const radius = 15 + (i % 3) * 1.8;
-    const x = Math.cos(angle) * radius;
-    const z = Math.sin(angle) * radius;
-    makePrimitive(app, `Palm Trunk ${i}`, 'cylinder', [x, 2.1, z], [0.28, 4.2, 0.28], wood);
-    for (let j = 0; j < 5; j++) {
-      const a = (j / 5) * Math.PI * 2;
-      const leafEntity = makePrimitive(app, `Palm Leaf ${i}-${j}`, 'box',
-        [x + Math.cos(a) * 1.35, 4.1, z + Math.sin(a) * 1.35],
-        [2.9, 0.12, 0.48], leaf);
-      leafEntity.setEulerAngles(0, -a * 180 / Math.PI, -18);
-    }
-  }
-
-  // Rocks and a simple landmark.
-  for (let i = 0; i < 18; i++) {
-    const angle = i * 2.1;
-    const radius = 6 + (i % 4) * 1.2;
-    makePrimitive(app, `Rock ${i}`, 'sphere',
-      [Math.cos(angle) * radius, 1.05, Math.sin(angle) * radius],
-      [0.65 + (i % 3) * 0.25, 0.8, 0.7], stone);
-  }
-  makePrimitive(app, 'Quest Beacon', 'cylinder', [0, 1.65, -5], [0.45, 2.1, 0.45], gold);
-  makePrimitive(app, 'Beacon Cap', 'sphere', [0, 2.85, -5], [0.65, 0.65, 0.65], gold);
-
-  const sun = new pc.Entity('Sun Light');
-  sun.addComponent('light', { type: 'directional', color: new pc.Color(1, 0.88, 0.72), intensity: 1.8, castShadows: true, shadowResolution: 1024 });
-  sun.setEulerAngles(45, 35, 0);
+  const sun = new pc.Entity('Sea 1 Sun');
+  sun.addComponent('light', { type:'directional', color:new pc.Color(1,0.88,0.72),
+    intensity:1.7, castShadows:true, shadowResolution:2048 });
+  sun.setEulerAngles(48,32,0);
   app.root.addChild(sun);
-
-  const fill = new pc.Entity('Sky Fill');
-  fill.addComponent('light', { type: 'omni', color: new pc.Color(0.45, 0.65, 1), intensity: 0.35, range: 100 });
-  fill.setPosition(0, 18, 0);
+  const fill = new pc.Entity('Sea 1 Sky Fill');
+  fill.addComponent('light', { type:'omni', color:new pc.Color(0.48,0.67,1),
+    intensity:0.35, range:700 });
+  fill.setPosition(-2000,180,0);
   app.root.addChild(fill);
+  return { config: WORLD_CONFIG };
 }
