@@ -56,7 +56,7 @@ export function createPlayer(app) {
       // Temporary starter-island boundary until swimming and boat travel are implemented.
       const p=entity.getPosition(), dx=p.x-spawnX, dz=p.z-spawnZ;
       const distance=Math.hypot(dx,dz);
-      const radius=Math.min(spawn.width,spawn.depth)*0.34;
+      const radius=Math.min(spawn.width,spawn.depth)*0.47;
       if(distance>radius){const factor=radius/distance;entity.setPosition(spawnX+dx*factor,p.y,spawnZ+dz*factor);}
     }
   };
