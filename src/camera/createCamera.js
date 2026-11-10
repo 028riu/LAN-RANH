@@ -1,34 +1,28 @@
 import * as pc from 'playcanvas';
 
 export function createCamera(app, player) {
-  const entity = new pc.Entity('Main Camera');
-  entity.addComponent('camera', {
-    clearColor: new pc.Color(0.42, 0.68, 0.84),
-    fov: 62,
-    nearClip: 0.1,
-    farClip: 260
+  const entity=new pc.Entity('Main Camera');
+  entity.addComponent('camera',{
+    clearColor:new pc.Color(0.42,0.68,0.84),
+    fov:62,nearClip:0.1,farClip:6500
   });
   app.root.addChild(entity);
-
-  const target = new pc.Vec3();
-  const desiredPosition = new pc.Vec3();
-  const currentPosition = new pc.Vec3(0, 5, 13);
+  const target=new pc.Vec3(), desiredPosition=new pc.Vec3();
+  const currentPosition=new pc.Vec3(0,5,13);
   entity.setPosition(currentPosition);
-
   return {
     entity,
-    update(dt, playerEntity, yaw, pitch) {
-      const p = playerEntity.getPosition();
-      target.set(p.x, p.y + 1.15, p.z);
-      const distance = 9;
-      const horizontal = Math.cos(pitch) * distance;
+    update(dt,playerEntity,yaw,pitch) {
+      const p=playerEntity.getPosition();
+      target.set(p.x,p.y+1.15,p.z);
+      const distance=9, horizontal=Math.cos(pitch)*distance;
       desiredPosition.set(
-        p.x + Math.sin(yaw) * horizontal,
-        p.y + 3.1 - pitch * 2.5,
-        p.z + Math.cos(yaw) * horizontal
+        p.x+Math.sin(yaw)*horizontal,
+        p.y+3.1-pitch*2.5,
+        p.z+Math.cos(yaw)*horizontal
       );
-      const alpha = 1 - Math.exp(-8 * dt);
-      currentPosition.lerp(currentPosition, desiredPosition, alpha);
+      const alpha=1-Math.exp(-8*dt);
+      currentPosition.lerp(currentPosition,desiredPosition,alpha);
       entity.setPosition(currentPosition);
       entity.lookAt(target);
     }
