@@ -25,12 +25,12 @@ function buildIsland(app, island, mats) {
   const top = elevation + island.height;
   primitive(app, island.name + ' rocky mass', 'cylinder',
     [x, elevation + island.height * 0.30, z],
-    [width * 0.50, island.height * 0.60, depth * 0.50], mats.rock);
+    [width, island.height * 0.60, depth], mats.rock);
   primitive(app, island.name + ' shoreline', 'cylinder',
     [x, elevation + island.height * 0.70, z],
-    [width * 0.50, island.height * 0.22, depth * 0.50], mats.sand);
+    [width, island.height * 0.22, depth], mats.sand);
   primitive(app, island.name + ' terrain', 'sphere',
-    [x, top - 1.2, z], [width * 0.48, 2.6, depth * 0.47], material(island.color));
+    [x, top - 1.2, z], [width * 0.96, 2.6, depth * 0.94], material(island.color));
 
   const landmarkHeight = Math.max(10, island.height * 1.5);
   const landmarkMat = island.biome === 'volcanic' ? mats.lavaRock :
