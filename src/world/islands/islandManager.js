@@ -32,7 +32,7 @@ import { layout as layoutVolcanic } from './volcanicIsland.js';
 const GLB_BUILDINGS = {
   dock_house: { file: 'pirate-stilt-tavern.glb', width: 10, depth: 8, height: 6 },
   harbor_warehouse: { file: 'Storage House by Quaternius - d2ZQWcuhwR.glb', width: 11, depth: 9, height: 6 },
-  pirate_captain_house: { file: 'pirate-captain-house.glb', width: 10.9, depth: 8.56, height: 6.4 },
+  pirate_captain_house: { file: 'Fantasy Inn by Quaternius - x3ZcGn3jr4.glb', width: 12, depth: 10, height: 6.2 },
   house_wood_large: { file: 'Cottage by CreativeTrio - YDGLLT0emC.glb', width: 8, depth: 7, height: 5.5 },
   house_wood_small: { files: ['House by Quaternius - L7h0SjZX2K.glb', 'House by Quaternius - RSwoYSLblu.glb'], width: 6.5, depth: 6, height: 4.8 },
   house_stone: { file: 'Fantasy House by Quaternius - BH2XHWUNmF.glb', width: 8, depth: 7, height: 6 },
@@ -168,7 +168,7 @@ export class IslandManager {
 
     this.app.assets.loadFromUrl(url, 'container', (err, asset) => {
       if (err || !asset || !asset.resource) {
-        console.error(`[islandManager] ${assetId} GLB failed to load. No procedural house will be spawned.`, err);
+        console.error(`[islandManager] ${assetId} GLB failed to load.`, err);
         return;
       }
 
@@ -176,34 +176,46 @@ export class IslandManager {
       try {
         entity = asset.resource.instantiateRenderEntity();
         entity.name = `${assetId} GLB`;
-        // Uploaded GLBs use different authoring units. Measure the imported
-        // mesh and normalize it to the target height configured per building.
         entity.setLocalPosition(0, 0, 0);
         entity.setLocalEulerAngles(0, 0, 0);
         entity.setLocalScale(1, 1, 1);
         this.app.root.addChild(entity);
         entity.syncHierarchy();
-        let minY = Infinity;
-        let maxY = -Infinity;
+
+        // Read actual render bounds. Use the same measured footprint for
+        // both visual normalization and collision, never guessed hitboxes.
+        const bounds = { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity, minZ: Infinity, maxZ: -Infinity };
         for (const render of entity.findComponents('render')) {
-          for (const meshInstance of render.meshInstances) {
-            const bounds = meshInstance.aabb;
-            if (!bounds) continue;
-            minY = Math.min(minY, bounds.center.y - bounds.halfExtents.y);
-            maxY = Math.max(maxY, bounds.center.y + bounds.halfExtents.y);
+          for (const mi of render.meshInstances) {
+            const aabb = mi.aabb;
+            if (!aabb) continue;
+            bounds.minX = Math.min(bounds.minX, aabb.center.x - aabb.halfExtents.x);
+            bounds.maxX = Math.max(bounds.maxX, aabb.center.x + aabb.halfExtents.x);
+            bounds.minY = Math.min(bounds.minY, aabb.center.y - aabb.halfExtents.y);
+            bounds.maxY = Math.max(bounds.maxY, aabb.center.y + aabb.halfExtents.y);
+            bounds.minZ = Math.min(bounds.minZ, aabb.center.z - aabb.halfExtents.z);
+            bounds.maxZ = Math.max(bounds.maxZ, aabb.center.z + aabb.halfExtents.z);
           }
         }
-        const nativeHeight = maxY - minY;
-        if (!Number.isFinite(nativeHeight) || nativeHeight < 0.001) {
-          throw new Error('GLB has no measurable render bounds');
+        const nativeHeight = bounds.maxY - bounds.minY;
+        const nativeWidth = bounds.maxX - bounds.minX;
+        const nativeDepth = bounds.maxZ - bounds.minZ;
+        if (![nativeHeight, nativeWidth, nativeDepth].every(Number.isFinite) || nativeHeight < 0.001 || nativeWidth < 0.001 || nativeDepth < 0.001) {
+          throw new Error('GLB has invalid render bounds');
         }
+
         const normalizedScale = (model.height / nativeHeight) * placementScale;
         entity.setLocalScale(normalizedScale, normalizedScale, normalizedScale);
         entity.setLocalEulerAngles(0, yawDeg, 0);
-        // Place the model bottom on the terrain regardless of its origin.
-        entity.setLocalPosition(x, y - minY * normalizedScale, z);
+        const centerX = (bounds.minX + bounds.maxX) * 0.5;
+        const centerZ = (bounds.minZ + bounds.maxZ) * 0.5;
+        const yaw = yawDeg * Math.PI / 180;
+        const offsetX = centerX * normalizedScale;
+        const offsetZ = centerZ * normalizedScale;
+        const worldOffsetX = offsetX * Math.cos(yaw) - offsetZ * Math.sin(yaw);
+        const worldOffsetZ = offsetX * Math.sin(yaw) + offsetZ * Math.cos(yaw);
+        entity.setLocalPosition(x - worldOffsetX, y - bounds.minY * normalizedScale, z - worldOffsetZ);
 
-        // Preserve the model's normal lighting/shadow behaviour.
         const setShadows = (node) => {
           if (node.render) {
             node.render.castShadows = true;
@@ -213,43 +225,50 @@ export class IslandManager {
         };
         setShadows(entity);
 
-        this._addBuildingCollision(x, y, z, yawDeg, placementScale, model);
+        this._addBuildingCollision(
+          x, y, z, yawDeg,
+          nativeWidth * normalizedScale,
+          nativeDepth * normalizedScale,
+          nativeHeight * normalizedScale
+        );
         island.glbEntities = island.glbEntities || [];
         island.glbEntities.push(entity);
-        console.info(`[islandManager] ${assetId} GLB loaded and normalized.`, { x, y, z, yawDeg, normalizedScale, nativeHeight, targetHeight: model.height, url });
+        console.info(`[islandManager] ${assetId} GLB loaded.`, {
+          x, y, z, yawDeg, normalizedScale,
+          footprint: [nativeWidth * normalizedScale, nativeDepth * normalizedScale],
+          targetHeight: model.height, url
+        });
       } catch (loadError) {
-        console.error(`[islandManager] Could not instantiate ${assetId} GLB. No procedural house will be spawned.`, loadError);
+        console.error(`[islandManager] Could not instantiate ${assetId} GLB.`, loadError);
         if (entity && entity.parent) entity.destroy();
       }
     });
   }
 
-  // Four perimeter wall colliders leave a central doorway open. Dimensions
-  // are conservative per-model estimates and can be tuned after in-game review.
-  _addBuildingCollision(x, y, z, yawDeg, scale, model) {
+  // Small perimeter colliders follow the real imported mesh footprint.
+  // The whole front (+Z) stays open so the entrance is reachable.
+  _addBuildingCollision(x, y, z, yawDeg, width, depth, height) {
     const yaw = yawDeg * Math.PI / 180;
     const c = Math.cos(yaw);
     const s = Math.sin(yaw);
-    const halfW = model.width / 2;
-    const halfD = model.depth / 2;
-    const wall = Math.max(0.16, Math.min(model.width, model.depth) * 0.035);
-    const addLocalBox = (lx, lz, hx, hz) => {
+    const halfW = width * 0.5;
+    const halfD = depth * 0.5;
+    const wall = Math.max(0.12, Math.min(width, depth) * 0.035);
+    const addWall = (lx, lz, hx, hz) => {
       this.collision.addBox({
         x: x + lx * c - lz * s,
         z: z + lx * s + lz * c,
-        hx: hx * scale,
-        hz: hz * scale,
+        hx, hz,
         y0: y,
-        y1: y + model.height * scale,
+        y1: y + height * 0.82,
         yaw
       });
     };
-    addLocalBox(-halfW + wall / 2, 0, wall / 2, halfD);
-    addLocalBox(halfW - wall / 2, 0, wall / 2, halfD);
-    addLocalBox(0, -halfD + wall / 2, halfW, wall / 2);
-    const doorHalf = Math.min(1.15, halfW * 0.28);
-    addLocalBox(-(doorHalf + halfW) / 2, halfD - wall / 2, (halfW - doorHalf) / 2, wall / 2);
-    addLocalBox((doorHalf + halfW) / 2, halfD - wall / 2, (halfW - doorHalf) / 2, wall / 2);
+    // Back wall and two side walls only. Open frontage prevents invisible
+    // collision from sealing paths or blocking access to the doorway.
+    addWall(0, -halfD + wall * 0.5, halfW, wall * 0.5);
+    addWall(-halfW + wall * 0.5, 0, wall * 0.5, halfD);
+    addWall(halfW - wall * 0.5, 0, wall * 0.5, halfD);
   }
 
   // Global ground height: the highest island surface at (x, z). Far from
