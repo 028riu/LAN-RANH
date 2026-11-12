@@ -84,8 +84,8 @@ export function layout(env) {
   // ------------------------------------------------------------------
   P('pirate_captain_house', { position: [48, 42], rotationY: 45 });
   P('house_wood_large', { position: [-22, 38], rotationY: 0 });
-  P('house_wood_small', { position: [10, 64], rotationY: 140 });
-  P('house_wood_small', { position: [-6, 16], rotationY: -150, variant: 1 });
+  P('house_wood_small', { position: [22, 72], rotationY: 140 });
+  P('house_wood_small', { position: [-22, 8], rotationY: -150, variant: 1 });
   P('house_stone', { position: [-30, 66], rotationY: -45 });
 
   // The well anchors the square; campfire and benches around it
