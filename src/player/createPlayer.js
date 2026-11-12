@@ -120,7 +120,10 @@ export function createPlayer(app, character, world) {
         sAxis *= inv;
       }
 
-      const desiredSpeed = input.sprint ? RUN_SPEED : WALK_SPEED;
+      const currentlySwimming = groundAt(state.position.x, state.position.z) < DEEP_WATER_LIMIT;
+      const desiredSpeed = currentlySwimming
+        ? cfg.swimSpeed
+        : (input.sprint ? RUN_SPEED : WALK_SPEED);
       const moveDir = new pc.Vec3();
       moveDir.add(scratchForward).scale(fAxis);
       moveDir.x += scratchRight.x * sAxis;
@@ -146,12 +149,12 @@ export function createPlayer(app, character, world) {
       {
         const yAtX = groundAt(tryX, curZ);
         const slopeAtX = slopeAt(tryX, curZ);
-        if (yAtX >= DEEP_WATER_LIMIT && (slopeAtX < SLOPE_LIMIT || yAtX < groundAt(curX, curZ) || yAtX - groundAt(curX, curZ) < stepUpTolerance)) {
+        if (yAtX < DEEP_WATER_LIMIT || slopeAtX < SLOPE_LIMIT || yAtX < groundAt(curX, curZ) || yAtX - groundAt(curX, curZ) < stepUpTolerance) {
           newX = tryX;
         }
         const yAtZ = groundAt(newX, tryZ);
         const slopeAtZ = slopeAt(newX, tryZ);
-        if (yAtZ >= DEEP_WATER_LIMIT && (slopeAtZ < SLOPE_LIMIT || yAtZ < groundAt(newX, curZ) || yAtZ - groundAt(newX, curZ) < stepUpTolerance)) {
+        if (yAtZ < DEEP_WATER_LIMIT || slopeAtZ < SLOPE_LIMIT || yAtZ < groundAt(newX, curZ) || yAtZ - groundAt(newX, curZ) < stepUpTolerance) {
           newZ = tryZ;
         }
       }
@@ -178,30 +181,40 @@ export function createPlayer(app, character, world) {
       const wasGrounded = state.grounded;
       state.wasGrounded = wasGrounded;
 
-      if (input.jump && wasGrounded) {
-        state.vertical = JUMP_VELOCITY;
-        state.grounded = false;
-        state.fallStartY = curY;
-        anim.setState('jump');
-      } else {
-        state.vertical -= GRAVITY * dt;
-      }
-
-      let nextY = curY + state.vertical * dt;
-
-      if (state.vertical <= 0 && nextY <= groundY + GROUND_SNAP) {
-        const fallDist = Math.max(0, state.fallStartY - groundY);
-        nextY = groundY;
-        state.vertical = 0;
-        state.grounded = true;
-        if (!wasGrounded && fallDist > 1.6) {
-          state.landedHard = true;
-        }
-      } else if (nextY > groundY + GROUND_SNAP) {
-        state.grounded = false;
-      }
-
       state.inDeepWater = terrainY < DEEP_WATER_LIMIT;
+      let nextY = curY;
+
+      if (state.inDeepWater) {
+        // Basic swimming: stay at the sea surface instead of falling to the
+        // seabed. Fruit-based drowning is intentionally deferred.
+        nextY = WORLD_CONFIG.seaLevel + cfg.swimSurfaceOffset;
+        state.vertical = 0;
+        state.grounded = false;
+        state.landedHard = false;
+      } else {
+        if (input.jump && wasGrounded) {
+          state.vertical = JUMP_VELOCITY;
+          state.grounded = false;
+          state.fallStartY = curY;
+          anim.setState('jump');
+        } else {
+          state.vertical -= GRAVITY * dt;
+        }
+
+        nextY = curY + state.vertical * dt;
+
+        if (state.vertical <= 0 && nextY <= groundY + GROUND_SNAP) {
+          const fallDist = Math.max(0, state.fallStartY - groundY);
+          nextY = groundY;
+          state.vertical = 0;
+          state.grounded = true;
+          if (!wasGrounded && fallDist > 1.6) {
+            state.landedHard = true;
+          }
+        } else if (nextY > groundY + GROUND_SNAP) {
+          state.grounded = false;
+        }
+      }
 
       // ----- Commit position -----
       place(newX, nextY, newZ);
@@ -216,7 +229,9 @@ export function createPlayer(app, character, world) {
       root.setLocalEulerAngles(0, state.currentYaw * DEG, 0);
 
       // ----- Animation state machine -----
-      if (!state.grounded) {
+      if (state.inDeepWater) {
+        anim.setState('walk');
+      } else if (!state.grounded) {
         if (state.vertical > 1.5) {
           anim.setState('jump');
         } else if (state.vertical < -0.5) {
