@@ -148,8 +148,7 @@ export class IslandManager {
     }
   }
 
-  // Load a standalone building GLB as a PlayCanvas container Entity.
-  // Keep the procedural module as a temporary fallback until all GLBs are verified.
+  // Load a standalone building GLB and normalize its native dimensions to the island scale.
   _loadGlbBuilding(island, placement) {
     const { assetId, opts } = placement;
     const pos = opts.position || [48, 42];
@@ -159,7 +158,7 @@ export class IslandManager {
     const z = lz + island.def.cz;
     const y = pos.length >= 3 ? pos[1] : island.env.groundAt(lx, lz);
     const yawDeg = opts.rotationY || 0;
-    const scale = opts.scale || 1;
+    const placementScale = opts.scale || 1;
     const modelConfig = GLB_BUILDINGS[assetId];
     if (!modelConfig) return;
     const variantFiles = modelConfig.files;
@@ -169,18 +168,39 @@ export class IslandManager {
 
     this.app.assets.loadFromUrl(url, 'container', (err, asset) => {
       if (err || !asset || !asset.resource) {
-        console.error(`[islandManager] ${assetId} GLB failed; using procedural fallback.`, err);
-        this._buildCaptainHouseFallback(island, assetId, opts);
+        console.error(`[islandManager] ${assetId} GLB failed to load. No procedural house will be spawned.`, err);
         return;
       }
 
       try {
         const entity = asset.resource.instantiateRenderEntity();
         entity.name = `${assetId} GLB`;
-        entity.setLocalPosition(x, y, z);
-        entity.setLocalEulerAngles(0, yawDeg, 0);
-        entity.setLocalScale(scale, scale, scale);
+        // Uploaded GLBs use different authoring units. Measure the imported
+        // mesh and normalize it to the target height configured per building.
+        entity.setLocalPosition(0, 0, 0);
+        entity.setLocalEulerAngles(0, 0, 0);
+        entity.setLocalScale(1, 1, 1);
         this.app.root.addChild(entity);
+        entity.syncHierarchy();
+        let minY = Infinity;
+        let maxY = -Infinity;
+        for (const render of entity.findComponents('render')) {
+          for (const meshInstance of render.meshInstances) {
+            const bounds = meshInstance.aabb;
+            if (!bounds) continue;
+            minY = Math.min(minY, bounds.center.y - bounds.halfExtents.y);
+            maxY = Math.max(maxY, bounds.center.y + bounds.halfExtents.y);
+          }
+        }
+        const nativeHeight = maxY - minY;
+        if (!Number.isFinite(nativeHeight) || nativeHeight < 0.001) {
+          throw new Error('GLB has no measurable render bounds');
+        }
+        const normalizedScale = (model.height / nativeHeight) * placementScale;
+        entity.setLocalScale(normalizedScale, normalizedScale, normalizedScale);
+        entity.setLocalEulerAngles(0, yawDeg, 0);
+        // Place the model bottom on the terrain regardless of its origin.
+        entity.setLocalPosition(x, y - minY * normalizedScale, z);
 
         // Preserve the model's normal lighting/shadow behaviour.
         const setShadows = (node) => {
@@ -192,28 +212,15 @@ export class IslandManager {
         };
         setShadows(entity);
 
-        this._addBuildingCollision(x, y, z, yawDeg, scale, model);
+        this._addBuildingCollision(x, y, z, yawDeg, placementScale, model);
         island.glbEntities = island.glbEntities || [];
         island.glbEntities.push(entity);
-        console.info(`[islandManager] ${assetId} GLB loaded.`, { x, y, z, yawDeg, scale, url });
+        console.info(`[islandManager] ${assetId} GLB loaded and normalized.`, { x, y, z, yawDeg, normalizedScale, nativeHeight, targetHeight: model.height, url });
       } catch (loadError) {
-        console.error(`[islandManager] Could not instantiate ${assetId} GLB; using fallback.`, loadError);
-        this._buildCaptainHouseFallback(island, assetId, opts);
+        console.error(`[islandManager] Could not instantiate ${assetId} GLB. No procedural house will be spawned.`, loadError);
+        if (entity && entity.parent) entity.destroy();
       }
     });
-  }
-
-  _buildCaptainHouseFallback(island, assetId, opts) {
-    const fallbackBatch = new PrimitiveBatch();
-    const fallbackEnv = {
-      ...island.env,
-      batch: fallbackBatch,
-      detailBatch: new PrimitiveBatch()
-    };
-    placeAsset(fallbackEnv, assetId, opts);
-    const entity = fallbackBatch.build(this.app, 'Pirate Captain House Procedural Fallback');
-    if (entity && entity.render) entity.render.castShadows = true;
-    island.captainHouseFallback = entity;
   }
 
   // Four perimeter wall colliders leave a central doorway open. Dimensions
