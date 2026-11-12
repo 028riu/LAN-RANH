@@ -42,6 +42,7 @@ export function layout(env) {
   P('cargo_stack', { position: [8.2, 121.0], rotationY: -12, variant: 1 });
   P('dock_bollard', { position: [6.4, 129.0], rotationY: 10, variant: 1 });
   P('weapon_shop', { position: [-8, 114], rotationY: 140 });
+  P('house_wood_small', { position: [34, 72], rotationY: 35, scale: 0.9 });
   P('flag_decor', { position: [6.5, 116], height: 5.5, variant: 1 });
   P('signpost', {
     position: [-3.5, 112], rotationY: 175,
