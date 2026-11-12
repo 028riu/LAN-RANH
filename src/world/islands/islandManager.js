@@ -34,12 +34,12 @@ const GLB_BUILDINGS = {
   harbor_warehouse: { file: 'Storage House by Quaternius - d2ZQWcuhwR.glb', width: 11, depth: 9, height: 6 },
   pirate_captain_house: { file: 'pirate-captain-house.glb', width: 10.9, depth: 8.56, height: 6.4 },
   house_wood_large: { file: 'Cottage by CreativeTrio - YDGLLT0emC.glb', width: 8, depth: 7, height: 5.5 },
-  house_wood_small: { file: 'House by Quaternius - L7h0SjZX2K.glb', width: 6.5, depth: 6, height: 4.8 },
+  house_wood_small: { files: ['House by Quaternius - L7h0SjZX2K.glb', 'House by Quaternius - RSwoYSLblu.glb'], width: 6.5, depth: 6, height: 4.8 },
   house_stone: { file: 'Fantasy House by Quaternius - BH2XHWUNmF.glb', width: 8, depth: 7, height: 6 },
-  coastal_house: { file: 'House by Quaternius - RSwoYSLblu.glb', width: 7.5, depth: 7, height: 5 },
+  coastal_house: { file: 'House by Quaternius - k6tP5nFUd2.glb', width: 7.5, depth: 7, height: 5 },
   storage_house: { file: 'Storage House by Quaternius - d2ZQWcuhwR.glb', width: 9, depth: 8, height: 5.5 },
-  fishing_hut: { file: 'pirate-stilt-tavern.glb', width: 8, depth: 7, height: 5.5 },
-  beach_hut: { file: 'Cottage by CreativeTrio - YDGLLT0emC.glb', width: 7, depth: 6, height: 5 }
+  fishing_hut: { file: 'House by Quaternius - nihGGju7DW.glb', width: 8, depth: 7, height: 5.5 },
+  beach_hut: { files: ['House by Quaternius - YlADpCJU8U.glb', 'House by Quaternius - vZ1CLbWmSx.glb'], width: 7, depth: 6, height: 5 }
 };
 
 const LAYOUTS = {
@@ -160,8 +160,11 @@ export class IslandManager {
     const y = pos.length >= 3 ? pos[1] : island.env.groundAt(lx, lz);
     const yawDeg = opts.rotationY || 0;
     const scale = opts.scale || 1;
-    const model = GLB_BUILDINGS[assetId];
-    if (!model) return;
+    const modelConfig = GLB_BUILDINGS[assetId];
+    if (!modelConfig) return;
+    const variantFiles = modelConfig.files;
+    const variantIndex = Math.abs(opts.variant || 0) % (variantFiles ? variantFiles.length : 1);
+    const model = { ...modelConfig, file: variantFiles ? variantFiles[variantIndex] : modelConfig.file };
     const url = `/assets/models/buildings/${encodeURI(model.file)}`;
 
     this.app.assets.loadFromUrl(url, 'container', (err, asset) => {
