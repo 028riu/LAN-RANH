@@ -3,29 +3,107 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#071522" />
-    <meta name="description" content="Fruit Game ZRT - a 3D island adventure prototype." />
-    <title>Fruit Game ZRT</title>
+    <meta name="theme-color" content="#0a2538" />
+    <meta name="description" content="FRUIT GAME ZRT - a 3D open world pirate island adventure." />
+    <title>FRUIT GAME ZRT</title>
   </head>
   <body>
     <div id="game-root">
       <canvas id="game-canvas" aria-label="3D game"></canvas>
-      <div id="loading-screen"><div class="loader-mark">FZ</div><strong>FRUIT GAME ZRT</strong><span>Building the island...</span></div>
-      <header class="topbar">
-        <div class="brand"><span class="brand-icon">F</span><span>FRUIT GAME <b>ZRT</b></span></div>
-        <div class="server-pill"><i></i> ISLAND 001 <span>•</span> SOLO</div>
-      </header>
-      <section class="player-panel">
-        <div class="avatar">⚔</div>
-        <div class="player-info"><strong>ADVENTURER</strong><span>Level <b id="level">1</b></span><div class="xp-track"><i></i></div></div>
-      </section>
-      <section class="status-panel"><div><span>HEALTH</span><b>100 / 100</b></div><div class="bar health"><i></i></div><div class="status-foot"><span>ENERGY</span><b>100 / 100</b></div><div class="bar energy"><i></i></div></section>
-      <div class="location-tag"><span>✦</span><div><small>DISCOVERING</small><b>STARTER ISLAND</b></div></div>
-      <div class="controls-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> <span>MOVE</span><kbd>SHIFT</kbd><span>SPRINT</span><kbd>SPACE</kbd><span>JUMP</span></div>
-      <div class="crosshair">+</div>
-      <div class="mobile-controls" aria-hidden="true"><div class="dpad"><button data-key="w">▲</button><div><button data-key="a">◀</button><button data-key="s">▼</button><button data-key="d">▶</button></div></div><button class="jump-button" data-key=" ">JUMP</button></div>
-      <div class="toast" id="toast">Welcome to Starter Island</div>
+
+      <!-- Loading screen -->
+      <div id="loading-screen">
+        <div class="loader-mark">FZ</div>
+        <strong>FRUIT GAME ZRT</strong>
+        <span class="loader-status">Building the archipelago...</span>
+      </div>
+
+      <!-- Main menu (start screen) -->
+      <div id="main-menu" class="overlay hidden">
+        <div class="menu-backdrop"></div>
+        <div class="menu-panel">
+          <div class="menu-eyebrow">A 3D OPEN WORLD ADVENTURE</div>
+          <h1 class="menu-title">FRUIT GAME<br><span>ZRT</span></h1>
+          <p class="menu-subtitle">Explore a five-island archipelago: the pirate settlement, deep jungle, burning dunes, frostpeak pines and an ember volcanic isle. Sail between them from any dock. The world awaits.</p>
+          <button id="play-button" class="primary-button">PLAY</button>
+          <div class="menu-controls">
+            <div class="control-row"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>Move</span></div>
+            <div class="control-row"><kbd>Shift</kbd><span>Sprint</span></div>
+            <div class="control-row"><kbd>Space</kbd><span>Jump</span></div>
+            <div class="control-row"><kbd>Mouse</kbd><span>Look around</span></div>
+            <div class="control-row"><kbd>Esc</kbd><span>Pause / release mouse</span></div>
+          </div>
+          <div class="menu-foot">Click PLAY to lock the mouse. Press ESC anytime to open the pause menu.</div>
+        </div>
+      </div>
+
+      <!-- In-game HUD -->
+      <div id="hud" class="hidden">
+        <div class="hud-location">
+          <span class="hud-pin">✦</span>
+          <div class="hud-location-text">
+            <small>CURRENT LOCATION</small>
+            <b id="hud-zone-name">Pirate Starter Island</b>
+          </div>
+        </div>
+        <div class="hud-controls">
+          <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>Move</span>
+          <kbd>Shift</kbd><span>Sprint</span>
+          <kbd>Space</kbd><span>Jump</span>
+          <kbd>Esc</kbd><span>Pause</span>
+        </div>
+        <div class="hud-crosshair">+</div>
+      </div>
+
+      <!-- Pause menu -->
+      <div id="pause-menu" class="overlay hidden">
+        <div class="menu-backdrop"></div>
+        <div class="menu-panel pause-panel">
+          <div class="menu-eyebrow">PAUSED</div>
+          <h2 class="menu-title small">PAUSE</h2>
+          <button id="resume-button" class="primary-button">RESUME</button>
+          <button id="restart-button" class="secondary-button">RESTART</button>
+          <div class="menu-controls">
+            <div class="control-row"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>Move</span></div>
+            <div class="control-row"><kbd>Shift</kbd><span>Sprint</span></div>
+            <div class="control-row"><kbd>Space</kbd><span>Jump</span></div>
+            <div class="control-row"><kbd>Mouse</kbd><span>Look around</span></div>
+          </div>
+          <div class="menu-foot">Click RESUME to lock the mouse again and return to the game.</div>
+        </div>
+      </div>
+
+      <!-- Travel prompt (near a moored boat) -->
+      <div id="travel-prompt" class="hidden">
+        <span id="travel-prompt-label">Press [E] — Set sail</span>
+      </div>
+
+      <!-- Travel destination menu -->
+      <div id="travel-menu" class="overlay hidden">
+        <div class="menu-backdrop"></div>
+        <div class="menu-panel travel-panel">
+          <div class="menu-eyebrow">SET SAIL</div>
+          <h2 class="menu-title small" id="travel-menu-title">Where to, captain?</h2>
+          <div id="travel-menu-list"></div>
+          <div class="menu-foot">Click an island to sail there. Press E or ESC to stay.</div>
+        </div>
+      </div>
+
+      <!-- Screen fade for sea travel -->
+      <div id="fade-overlay" class="hidden"></div>
+
+      <!-- Pointer lock prompt (when browser refuses / user alt-tabbed) -->
+      <div id="pointer-prompt" class="hidden">
+        <div class="prompt-inner">
+          <strong>Click the screen to capture the mouse</strong>
+          <span>Press ESC again to return to the pause menu.</span>
+        </div>
+      </div>
+
+      <!-- Toast for transient messages -->
+      <div id="toast" class="toast">Welcome to Pirate Starter Island</div>
     </div>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

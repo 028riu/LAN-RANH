@@ -1,8 +1,9 @@
 {
   "name": "fruit-game-zrt",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
+  "description": "FRUIT GAME ZRT - 3D open world pirate archipelago adventure (5 islands, modular asset system, full collision).",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
