@@ -47,7 +47,7 @@ export function layout(env) {
   P('hanging_lantern', { position: [3.4, deckY + 1.9, dock.z - 8], rotationY: 180 });
 
   // Harbourmaster's dock house beside the pier foot (overlooking the water)
-  P('dock_house', { position: [9.5, 106.5], rotationY: -24 });
+  P('dock_house', { position: [9.5, 106.5], rotationY: 135 });
   P('flower_pot', { position: [7.6, 104.6], variant: 1 });
   P('flower_pot', { position: [11.4, 104.9], variant: 2 });
 
@@ -73,7 +73,7 @@ export function layout(env) {
   // ------------------------------------------------------------------
   // Harbour warehouse — the big cargo building west of the coastal row
   // ------------------------------------------------------------------
-  P('harbor_warehouse', { position: [-26, 96], rotationY: -90 });
+  P('harbor_warehouse', { position: [-26, 96], rotationY: 160 });
   P('dock_bollard', { position: [-33.5, 89.5], rotationY: 70, variant: 1 });
   P('cargo_stack', { position: [-33.2, 98.5], rotationY: 12, variant: 2 });
   P('wooden_barrel', { position: [-20.2, 103.5] });
@@ -82,11 +82,11 @@ export function layout(env) {
   // ------------------------------------------------------------------
   // Village square (0, 48) — heart of the settlement
   // ------------------------------------------------------------------
-  P('pirate_captain_house', { position: [48, 42], rotationY: -83 });
-  P('house_wood_large', { position: [-22, 38], rotationY: 90 });
-  P('house_wood_small', { position: [10, 64], rotationY: -144 });
-  P('house_wood_small', { position: [-6, 16], rotationY: 12, variant: 1 });
-  P('house_stone', { position: [-30, 66], rotationY: 135 });
+  P('pirate_captain_house', { position: [48, 42], rotationY: 45 });
+  P('house_wood_large', { position: [-22, 38], rotationY: 0 });
+  P('house_wood_small', { position: [10, 64], rotationY: 140 });
+  P('house_wood_small', { position: [-6, 16], rotationY: -150, variant: 1 });
+  P('house_stone', { position: [-30, 66], rotationY: -45 });
 
   // The well anchors the square; campfire and benches around it
   P('village_well', { position: [0, 50] });
@@ -171,9 +171,9 @@ export function layout(env) {
   // ------------------------------------------------------------------
   // Coastal row + hidden cove sea cave
   // ------------------------------------------------------------------
-  P('coastal_house', { position: [-52, 92], rotationY: 86 });
-  P('storage_house', { position: [14, 96], rotationY: -90 });
-  P('fishing_hut', { position: [-40, 103], rotationY: 205 });
+  P('coastal_house', { position: [-52, 92], rotationY: -90 });
+  P('storage_house', { position: [14, 96], rotationY: 55 });
+  P('fishing_hut', { position: [-40, 103], rotationY: 180 });
   P('fishing_boat', { position: [-58, 104], rotationY: -35 });
   P('wooden_barrel', { position: [-48, 96] });
   P('wicker_basket', { position: [-36.5, 106.5], variant: 1 });
@@ -193,8 +193,8 @@ export function layout(env) {
   // ------------------------------------------------------------------
   // South beach — shade huts + dune grass
   // ------------------------------------------------------------------
-  P('beach_hut', { position: [-26, -128], rotationY: 205 });
-  P('beach_hut', { position: [22, -124], rotationY: 155, variant: 1 });
+  P('beach_hut', { position: [-26, -128], rotationY: -12 });
+  P('beach_hut', { position: [22, -124], rotationY: 10, variant: 1 });
   P('wooden_barrel', { position: [-22.5, -124.5], variant: 1 });
   P('wicker_basket', { position: [18.5, -120.5] });
   P('campfire', { position: [-3, -126] });
