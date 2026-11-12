@@ -37,6 +37,25 @@
         </div>
       </div>
 
+      <!-- Free-fly inspection controls -->
+      <section id="fly-panel" class="fly-panel hidden" aria-label="Free flight settings">
+        <div class="fly-panel-heading">
+          <div>
+            <small>WORLD INSPECTION</small>
+            <strong>FREE FLY <span>● ACTIVE</span></strong>
+          </div>
+          <kbd>F</kbd>
+        </div>
+        <label class="fly-speed-label" for="fly-speed">FLIGHT SPEED <output id="fly-speed-value">18 u/s</output></label>
+        <input id="fly-speed" type="range" min="2" max="80" step="1" value="18" />
+        <div class="fly-speed-scale"><span>2 — Chậm</span><span>80 — Nhanh</span></div>
+        <div class="fly-controls-hint">WASD: Di chuyển · Space: Lên · Ctrl: Xuống · Shift: ×3</div>
+        <div class="fly-actions">
+          <button id="fly-mouse-button" type="button">KHÓA CHUỘT ĐỂ NHÌN</button>
+          <button id="fly-exit-button" type="button">THOÁT BAY (F)</button>
+        </div>
+      </section>
+
       <!-- In-game HUD -->
       <div id="hud" class="hidden">
         <div class="hud-location">
