@@ -47,6 +47,7 @@ export function layout(env) {
   // Cabins (same modules, snow theme)
   P('house_wood_small', { position: [-10, 84], rotationY: 150 });
   P('house_wood_large', { position: [-24, 96], rotationY: 110 });
+  P('house_stone', { position: [38, -28], rotationY: -25, scale: 0.9 });
   P('wooden_fence', { position: [-16, 90], rotationY: 40, length: 5 });
   P('signpost', {
     position: [-4, 88], rotationY: 170,
