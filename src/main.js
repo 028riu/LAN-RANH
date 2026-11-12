@@ -51,6 +51,12 @@ const input = () => ({
 window.addEventListener('keydown', (event) => {
   const key = event.key.toLowerCase();
   held.add(key);
+  // Free-fly inspection mode: F toggles it without opening the pause menu.
+  if (key === 'f' && (gameState === 'playing' || gameState === 'fly')) {
+    if (gameState === 'fly') exitFlyMode();
+    else enterFlyMode();
+    return;
+  }
   if ([' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
     event.preventDefault();
   }
@@ -73,7 +79,7 @@ window.addEventListener('blur', () => held.clear());
 //   mouse down (movementY > 0) → pitch INCREASES → camera rises → looks DOWN
 let cameraYaw = 0;
 let cameraPitch = 0.15;
-let gameState = 'menu'; // 'menu' | 'playing' | 'paused' | 'travel'
+let gameState = 'menu'; // 'menu' | 'playing' | 'paused' | 'travel' | 'fly'
 let elapsedTime = 0;
 
 const pointerLock = createPointerLock(canvas);
@@ -124,6 +130,7 @@ pointerLock.on('unlocked', () => {
     hud.showPrompt();
     promptClickable();
   }
+  // In fly mode, ESC only releases the mouse; flight remains active.
   // 'travel' and 'menu' states handle their own UI — no pause prompt.
 });
 
@@ -135,10 +142,77 @@ pointerLock.on('error', () => {
 });
 
 const promptEl = document.querySelector('#pointer-prompt');
+
 function promptClickable() {
   promptEl.onclick = () => {
     pointerLock.request();
   };
+}
+
+// --- Free-fly inspection mode (for world / asset design) ---
+const flyPanel = document.querySelector('#fly-panel');
+const flySpeedInput = document.querySelector('#fly-speed');
+const flySpeedValue = document.querySelector('#fly-speed-value');
+const flyMouseButton = document.querySelector('#fly-mouse-button');
+const flyExitButton = document.querySelector('#fly-exit-button');
+let flySpeed = 18;
+
+function syncFlySpeed() {
+  flySpeed = Number(flySpeedInput.value) || 18;
+  flySpeedValue.textContent = flySpeed.toFixed(0) + ' u/s';
+}
+flySpeedInput.addEventListener('input', syncFlySpeed);
+
+function enterFlyMode() {
+  if (gameState !== 'playing') return;
+  gameState = 'fly';
+  hud.showHud();
+  hud.hidePrompt();
+  flyPanel.classList.remove('hidden');
+  pointerLock.exit(); // release cursor so the speed slider is usable
+  player.state.horizontal.set(0, 0, 0);
+  player.state.vertical = 0;
+  hud.showToast('FREE FLY ENABLED — F: exit flight', 2600);
+}
+
+function exitFlyMode() {
+  if (gameState !== 'fly') return;
+  gameState = 'playing';
+  flyPanel.classList.add('hidden');
+  player.state.horizontal.set(0, 0, 0);
+  player.state.vertical = 0;
+  pointerLock.request();
+  hud.showToast('Free Fly disabled', 1800);
+}
+
+flyMouseButton.addEventListener('click', () => {
+  if (gameState === 'fly') pointerLock.request();
+});
+flyExitButton.addEventListener('click', exitFlyMode);
+
+function updateFly(dt) {
+  const i = input();
+  const yaw = cameraYaw;
+  const pitch = cameraPitch;
+  const forward = new pc.Vec3(-Math.sin(yaw) * Math.cos(pitch), -Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
+  const right = new pc.Vec3(Math.cos(yaw), 0, -Math.sin(yaw));
+  const move = new pc.Vec3();
+  if (i.forward) move.add(forward);
+  if (i.backward) move.sub(forward);
+  if (i.right) move.add(right);
+  if (i.left) move.sub(right);
+  if (i.jump) move.y += 1;
+  if (held.has('control') || held.has('c')) move.y -= 1;
+  if (move.lengthSq() > 0) move.normalize();
+  const multiplier = i.sprint ? 3 : 1;
+  const p = player.state.position;
+  p.x += move.x * flySpeed * multiplier * dt;
+  p.y += move.y * flySpeed * multiplier * dt;
+  p.z += move.z * flySpeed * multiplier * dt;
+  player.entity.setLocalPosition(p);
+  player.state.horizontal.set(0, 0, 0);
+  player.state.vertical = 0;
+  camera.update(dt, player.entity, cameraYaw, cameraPitch);
 }
 
 const mainMenu = bindMainMenu(startGame);
@@ -171,7 +245,7 @@ app.on('update', (dt) => {
   world.updateOcean(dt, elapsedTime);
   world.updateDetail(camera.getPosition());
 
-  if (pointerLock.isLocked() && gameState === 'playing') {
+  if (pointerLock.isLocked() && (gameState === 'playing' || gameState === 'fly')) {
     const m = pointerLock.consumeMovement();
     const sens = camCfg.sensitivity;
     // Mouse right (m.x > 0) → yaw decreases → view turns right (verified).
@@ -185,6 +259,8 @@ app.on('update', (dt) => {
     player.update(dt, i, cameraYaw);
     camera.update(dt, player.entity, cameraYaw, cameraPitch);
     travel.update(player.entity.getLocalPosition());
+  } else if (gameState === 'fly') {
+    updateFly(dt);
   } else {
     camera.update(0.0, player.entity, cameraYaw, cameraPitch);
   }
