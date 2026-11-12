@@ -48,7 +48,9 @@ export function pbrMaterial(opts = {}) {
     m.blendType = pc.BLEND_NORMAL;
   }
   if (opts.useVertexColors) m.vertexColors = true;
-  if (opts.cull !== undefined) m.cull = opts.cull;
+  // Procedural meshes include thin foliage and hand-authored road slabs;
+  // render both sides so winding variations never make surfaces disappear.
+  m.cull = opts.cull !== undefined ? opts.cull : pc.CULLFACE_NONE;
   if (opts.castShadows !== undefined) {
     // Per-material control is via the render component; we still record it
     m._castShadows = opts.castShadows;
