@@ -290,7 +290,7 @@ export function layout(env) {
 
   // Undergrowth (micro-detail layer)
   env.scatterGroup({
-    count: 240, seed: 105,
+    count: 120, seed: 105,
     center: [0, 0], radius: 150,
     minHeight: 1.5, maxSlope: 0.7,
     exclude: exclusions, detail: true, theme: T,
@@ -306,7 +306,7 @@ export function layout(env) {
 
   // Beach grass ring along the dune line (detail layer, wind-combed)
   env.scatter({
-    asset: 'beach_grass', count: 90, seed: 113,
+    asset: 'beach_grass', count: 55, seed: 113,
     center: [0, 0], innerRadius: 96, radius: 158,
     minHeight: 0.6, maxHeight: 2.4,
     scale: [0.8, 1.4], rotation: 'random', theme: T,
@@ -316,7 +316,7 @@ export function layout(env) {
 
   // Flower patches sprinkled along the settlement edges
   env.scatter({
-    asset: 'flower_patch', count: 14, seed: 114,
+    asset: 'flower_patch', count: 8, seed: 114,
     center: [0, 30], radius: 95,
     minHeight: 1.6, maxSlope: 0.5,
     scale: [0.8, 1.3], rotation: 'random', theme: T,
@@ -326,39 +326,39 @@ export function layout(env) {
 
   // Inland + coastal rocks
   env.scatter({
-    asset: 'rock_01', count: 18, seed: 106,
+    asset: 'rock_01', count: 8, seed: 106,
     center: [0, 0], radius: 150,
     minHeight: 0.6, maxSlope: 0.8,
-    scale: [0.8, 1.6], rotation: 'random', theme: T,
+    scale: [0.75, 1.25], rotation: 'random', theme: T,
     exclude: [{ x: 0, z: 120, r: 30 }]
   });
   env.scatter({
-    asset: 'rock_02', count: 10, seed: 107,
+    asset: 'rock_02', count: 5, seed: 107,
     center: [0, 0], radius: 150,
     minHeight: 0.8, maxSlope: 0.85,
-    scale: [0.9, 1.4], rotation: 'random', theme: T,
+    scale: [0.75, 1.2], rotation: 'random', theme: T,
     exclude: [{ x: 0, z: 120, r: 30 }]
   });
   // Wet coastal rocks + sea stacks near the waterline
   env.scatter({
-    asset: 'coastal_rocks', count: 14, seed: 115,
+    asset: 'coastal_rocks', count: 8, seed: 115,
     center: [0, 0], innerRadius: 135, radius: 185,
     minHeight: -1.6, maxHeight: 1.4,
-    scale: [0.8, 1.5], rotation: 'random', theme: T,
+    scale: [0.7, 1.2], rotation: 'random', theme: T,
     place: (e, i, x, z, yaw, s) => e.placeAsset('coastal_rocks', { position: [x, z], rotationY: yaw, scale: s, theme: T, wet: true })
   });
   env.scatter({
-    asset: 'rock_01', count: 16, seed: 116,
+    asset: 'rock_01', count: 7, seed: 116,
     center: [0, 0], innerRadius: 138, radius: 185,
     minHeight: -1.6, maxHeight: 1.4,
-    scale: [0.9, 1.7], rotation: 'random', theme: T,
+    scale: [0.75, 1.25], rotation: 'random', theme: T,
     place: (e, i, x, z, yaw, s) => e.placeAsset('rock_01', { position: [x, z], rotationY: yaw, scale: s, theme: T, wet: true })
   });
   env.scatter({
-    asset: 'cliff_rock', count: 9, seed: 117,
+    asset: 'cliff_rock', count: 5, seed: 117,
     center: [0, 0], innerRadius: 150, radius: 195,
     minHeight: -2.5, maxHeight: 2.5,
-    scale: [0.9, 1.6], rotation: 'random', theme: T
+    scale: [0.75, 1.2], rotation: 'random', theme: T
   });
 
   // Path network: harbour → square → market / captain / lookout / coast
