@@ -116,7 +116,8 @@ function restartGame() {
 }
 
 pointerLock.on('locked', () => {
-  gameState = 'playing';
+  // Keep the inspection state when the mouse is captured for camera look.
+  if (gameState !== 'fly') gameState = 'playing';
   mainMenu.hide();
   pauseMenu.hide();
   hud.showHud();
@@ -189,6 +190,23 @@ flyMouseButton.addEventListener('click', () => {
   if (gameState === 'fly') pointerLock.request();
 });
 flyExitButton.addEventListener('click', exitFlyMode);
+
+// Start directly in inspection flight from the title screen.
+const designFlyButton = document.querySelector('#design-fly-button');
+designFlyButton.addEventListener('click', () => {
+  if (gameState !== 'menu') return;
+  player.respawn();
+  camera.setInitial(player.state.position);
+  cameraYaw = 0;
+  cameraPitch = 0.15;
+  mainMenu.hide();
+  hud.showHud();
+  hud.hidePrompt();
+  gameState = 'fly';
+  flyPanel.classList.remove('hidden');
+  syncFlySpeed();
+  hud.showToast('DESIGN FLY — WASD move · Space up · Ctrl down · F exit', 3600);
+});
 
 function updateFly(dt) {
   const i = input();
