@@ -173,6 +173,7 @@ export function layout(env) {
     // A small waystation gives the oasis a clear destination beyond the waterhole.
     // The house is deliberately offset east so it does not cover the pond.
     P('house_wood_small', { position: [26, -52], rotationY: 35, scale: 1.25 });
+    P('house_stone', { position: [-52, 18], rotationY: 125, scale: 0.95 });
     P('wooden_fence', { position: [20, -43], rotationY: 35, length: 4.5 });
     P('wooden_fence', { position: [32, -44], rotationY: 125, length: 4.5 });
     P('wooden_bench', { position: [18, -54], rotationY: 125, length: 2.0 });
