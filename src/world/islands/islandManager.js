@@ -35,7 +35,7 @@ const GLB_BUILDINGS = {
   pirate_captain_house: { file: 'Fantasy Inn by Quaternius - x3ZcGn3jr4.glb', width: 12, depth: 10, height: 6.2 },
   house_wood_large: { file: 'Cottage by CreativeTrio - YDGLLT0emC.glb', width: 8, depth: 7, height: 5.5 },
   house_wood_small: { files: ['House by Quaternius - L7h0SjZX2K.glb', 'House by Quaternius - RSwoYSLblu.glb'], width: 6.5, depth: 6, height: 4.8 },
-  house_stone: { file: 'Fantasy House by Quaternius - BH2XHWUNmF.glb', width: 8, depth: 7, height: 6 },
+  house_stone: { file: 'Fantasy House by Quaternius - BH2XHWUNmF.glb', width: 8, depth: 7, height: 8.2 },
   coastal_house: { file: 'House by Quaternius - k6tP5nFUd2.glb', width: 7.5, depth: 7, height: 5 },
   storage_house: { file: 'Storage House by Quaternius - d2ZQWcuhwR.glb', width: 9, depth: 8, height: 5.5 },
   fishing_hut: { file: 'House by Quaternius - nihGGju7DW.glb', width: 8, depth: 7, height: 5.5 },
@@ -245,30 +245,19 @@ export class IslandManager {
     });
   }
 
-  // Small perimeter colliders follow the real imported mesh footprint.
-  // The whole front (+Z) stays open so the entrance is reachable.
+  // Solid oriented footprint collider uses the imported model's measured bounds.
+  // This prevents the player from walking through any side of a house.
   _addBuildingCollision(x, y, z, yawDeg, width, depth, height) {
     const yaw = yawDeg * Math.PI / 180;
-    const c = Math.cos(yaw);
-    const s = Math.sin(yaw);
-    const halfW = width * 0.5;
-    const halfD = depth * 0.5;
-    const wall = Math.max(0.12, Math.min(width, depth) * 0.035);
-    const addWall = (lx, lz, hx, hz) => {
-      this.collision.addBox({
-        x: x + lx * c - lz * s,
-        z: z + lx * s + lz * c,
-        hx, hz,
-        y0: y,
-        y1: y + height * 0.82,
-        yaw
-      });
-    };
-    // Back wall and two side walls only. Open frontage prevents invisible
-    // collision from sealing paths or blocking access to the doorway.
-    addWall(0, -halfD + wall * 0.5, halfW, wall * 0.5);
-    addWall(-halfW + wall * 0.5, 0, wall * 0.5, halfD);
-    addWall(halfW - wall * 0.5, 0, wall * 0.5, halfD);
+    const margin = 0.18;
+    this.collision.addBox({
+      x, z,
+      hx: Math.max(0.35, width * 0.5 - margin),
+      hz: Math.max(0.35, depth * 0.5 - margin),
+      y0: y,
+      y1: y + height * 0.9,
+      yaw
+    });
   }
 
   // Global ground height: the highest island surface at (x, z). Far from
