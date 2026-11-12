@@ -60,7 +60,7 @@ function sharedMaterials() {
     thatch: toneSet([[0.67, 0.53, 0.27], [0.61, 0.48, 0.24], [0.72, 0.58, 0.31]], { roughness: 0.96 }),
 
     // --- Extended stone family (Part 08.2) -------------------------------------
-    stoneSmooth: toneSet([[0.58, 0.56, 0.52], [0.54, 0.52, 0.48], [0.61, 0.59, 0.55]], { roughness: 0.85 }),
+    stoneSmooth: toneSet([[0.58, 0.56, 0.52], [0.54, 0.52, 0.48], [0.61, 0.59, 0.55]], { roughness: 0.85, cull: pc.CULLFACE_NONE }),
     stoneVolcanic: toneSet([[0.24, 0.21, 0.21], [0.20, 0.18, 0.18], [0.28, 0.25, 0.24]], { roughness: 0.96 }),
     stoneSnow: toneSet([[0.63, 0.67, 0.71], [0.58, 0.63, 0.68]], { roughness: 0.9 }),
 
@@ -97,9 +97,9 @@ function sharedMaterials() {
     snow: single([0.93, 0.95, 0.97], { roughness: 0.85 }),
 
     // Rocks
-    rock: toneSet([[0.46, 0.44, 0.40], [0.50, 0.47, 0.43], [0.42, 0.41, 0.38]], { roughness: 0.92 }),
-    rockDry: toneSet([[0.55, 0.50, 0.42], [0.58, 0.52, 0.44]], { roughness: 0.95 }),
-    rockWet: toneSet([[0.38, 0.40, 0.40], [0.35, 0.37, 0.38]], { roughness: 0.6 }),
+    rock: toneSet([[0.46, 0.44, 0.40], [0.50, 0.47, 0.43], [0.42, 0.41, 0.38]], { roughness: 0.92, cull: pc.CULLFACE_NONE }),
+    rockDry: toneSet([[0.55, 0.50, 0.42], [0.58, 0.52, 0.44]], { roughness: 0.95, cull: pc.CULLFACE_NONE }),
+    rockWet: toneSet([[0.38, 0.40, 0.40], [0.35, 0.37, 0.38]], { roughness: 0.6, cull: pc.CULLFACE_NONE }),
     ember: pbrMaterial({ color: [0.95, 0.45, 0.12], emissive: new pc.Color(0.85, 0.28, 0.03), roughness: 0.6 }),
     lava: pbrMaterial({ color: [1.0, 0.42, 0.08], emissive: new pc.Color(1.0, 0.3, 0.02), roughness: 0.55 }),
     pondWater: single([0.22, 0.42, 0.44], { roughness: 0.15, metalness: 0.1, opacity: 0.72 })
