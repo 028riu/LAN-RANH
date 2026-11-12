@@ -25,6 +25,23 @@ import { layout as layoutDesert } from './desertIsland.js';
 import { layout as layoutSnow } from './snowIsland.js';
 import { layout as layoutVolcanic } from './volcanicIsland.js';
 
+
+
+// External GLB replacements for procedural house assets. Paths retain the
+// original uploaded filenames; encodeURI safely handles their spaces.
+const GLB_BUILDINGS = {
+  dock_house: { file: 'pirate-stilt-tavern.glb', width: 10, depth: 8, height: 6 },
+  harbor_warehouse: { file: 'Storage House by Quaternius - d2ZQWcuhwR.glb', width: 11, depth: 9, height: 6 },
+  pirate_captain_house: { file: 'pirate-captain-house.glb', width: 10.9, depth: 8.56, height: 6.4 },
+  house_wood_large: { file: 'Cottage by CreativeTrio - YDGLLT0emC.glb', width: 8, depth: 7, height: 5.5 },
+  house_wood_small: { file: 'House by Quaternius - L7h0SjZX2K.glb', width: 6.5, depth: 6, height: 4.8 },
+  house_stone: { file: 'Fantasy House by Quaternius - BH2XHWUNmF.glb', width: 8, depth: 7, height: 6 },
+  coastal_house: { file: 'House by Quaternius - RSwoYSLblu.glb', width: 7.5, depth: 7, height: 5 },
+  storage_house: { file: 'Storage House by Quaternius - d2ZQWcuhwR.glb', width: 9, depth: 8, height: 5.5 },
+  fishing_hut: { file: 'pirate-stilt-tavern.glb', width: 8, depth: 7, height: 5.5 },
+  beach_hut: { file: 'Cottage by CreativeTrio - YDGLLT0emC.glb', width: 7, depth: 6, height: 5 }
+};
+
 const LAYOUTS = {
   pirate_starter: layoutStarter,
   jungle_isle: layoutJungle,
@@ -91,9 +108,9 @@ export class IslandManager {
         groundAt: (x, z) => this.groundAt(x + def.cx, z + def.cz),
         slopeAt: (x, z) => this.slopeAt(x + def.cx, z + def.cz),
         placeAsset: (assetId, opts) => {
-          // The captain's landmark is loaded as a standalone GLB Entity.
-          // Keep its original procedural asset as an asynchronous fallback.
-          if (def.id === 'pirate_starter' && assetId === 'pirate_captain_house') {
+          // House modules are replaced by uploaded GLB models. Other modular
+          // structures (stalls, shops, watchtowers, docks, props) stay batched.
+          if (GLB_BUILDINGS[assetId]) {
             island.glbPlacements.push({ assetId, opts: { ...opts } });
             return null;
           }
@@ -126,14 +143,14 @@ export class IslandManager {
 
       // Load standalone landmark models after the island batches exist.
       for (const placement of island.glbPlacements) {
-        this._loadCaptainHouse(island, placement);
+        this._loadGlbBuilding(island, placement);
       }
     }
   }
 
-  // Load the captain's house as a separate PlayCanvas container Entity.
-  // If loading fails, rebuild only that asset into its own batch as fallback.
-  _loadCaptainHouse(island, placement) {
+  // Load a standalone building GLB as a PlayCanvas container Entity.
+  // Keep the procedural module as a temporary fallback until all GLBs are verified.
+  _loadGlbBuilding(island, placement) {
     const { assetId, opts } = placement;
     const pos = opts.position || [48, 42];
     const lx = pos[0];
@@ -143,18 +160,20 @@ export class IslandManager {
     const y = pos.length >= 3 ? pos[1] : island.env.groundAt(lx, lz);
     const yawDeg = opts.rotationY || 0;
     const scale = opts.scale || 1;
-    const url = '/assets/models/buildings/pirate-captain-house.glb';
+    const model = GLB_BUILDINGS[assetId];
+    if (!model) return;
+    const url = `/assets/models/buildings/${encodeURI(model.file)}`;
 
     this.app.assets.loadFromUrl(url, 'container', (err, asset) => {
       if (err || !asset || !asset.resource) {
-        console.error('[islandManager] Captain house GLB failed; using procedural fallback.', err);
+        console.error(`[islandManager] ${assetId} GLB failed; using procedural fallback.`, err);
         this._buildCaptainHouseFallback(island, assetId, opts);
         return;
       }
 
       try {
         const entity = asset.resource.instantiateRenderEntity();
-        entity.name = 'Pirate Captain House GLB';
+        entity.name = `${assetId} GLB`;
         entity.setLocalPosition(x, y, z);
         entity.setLocalEulerAngles(0, yawDeg, 0);
         entity.setLocalScale(scale, scale, scale);
@@ -170,11 +189,12 @@ export class IslandManager {
         };
         setShadows(entity);
 
-        this._addCaptainHouseCollision(x, y, z, yawDeg, scale);
-        island.captainHouseEntity = entity;
-        console.info('[islandManager] Captain house GLB loaded.', { x, y, z, yawDeg, scale });
+        this._addBuildingCollision(x, y, z, yawDeg, scale, model);
+        island.glbEntities = island.glbEntities || [];
+        island.glbEntities.push(entity);
+        console.info(`[islandManager] ${assetId} GLB loaded.`, { x, y, z, yawDeg, scale, url });
       } catch (loadError) {
-        console.error('[islandManager] Could not instantiate Captain house GLB; using fallback.', loadError);
+        console.error(`[islandManager] Could not instantiate ${assetId} GLB; using fallback.`, loadError);
         this._buildCaptainHouseFallback(island, assetId, opts);
       }
     });
@@ -193,13 +213,15 @@ export class IslandManager {
     island.captainHouseFallback = entity;
   }
 
-  // Four wall colliders leave a doorway open. Dimensions follow the GLB's
-  // approximately 10.9 x 8.56 m footprint; the original procedural asset
-  // remains untouched and supplies collision automatically on fallback.
-  _addCaptainHouseCollision(x, y, z, yawDeg, scale) {
+  // Four perimeter wall colliders leave a central doorway open. Dimensions
+  // are conservative per-model estimates and can be tuned after in-game review.
+  _addBuildingCollision(x, y, z, yawDeg, scale, model) {
     const yaw = yawDeg * Math.PI / 180;
     const c = Math.cos(yaw);
     const s = Math.sin(yaw);
+    const halfW = model.width / 2;
+    const halfD = model.depth / 2;
+    const wall = Math.max(0.16, Math.min(model.width, model.depth) * 0.035);
     const addLocalBox = (lx, lz, hx, hz) => {
       this.collision.addBox({
         x: x + lx * c - lz * s,
@@ -207,18 +229,16 @@ export class IslandManager {
         hx: hx * scale,
         hz: hz * scale,
         y0: y,
-        y1: y + 6.4 * scale,
+        y1: y + model.height * scale,
         yaw
       });
     };
-
-    // Side and rear walls.
-    addLocalBox(-5.25, 0, 0.18, 4.10);
-    addLocalBox(5.25, 0, 0.18, 4.10);
-    addLocalBox(0, -4.10, 5.25, 0.18);
-    // Front wall split around the entrance.
-    addLocalBox(-4.375, 4.10, 0.875, 0.18);
-    addLocalBox(1.775, 4.10, 3.475, 0.18);
+    addLocalBox(-halfW + wall / 2, 0, wall / 2, halfD);
+    addLocalBox(halfW - wall / 2, 0, wall / 2, halfD);
+    addLocalBox(0, -halfD + wall / 2, halfW, wall / 2);
+    const doorHalf = Math.min(1.15, halfW * 0.28);
+    addLocalBox(-(doorHalf + halfW) / 2, halfD - wall / 2, (halfW - doorHalf) / 2, wall / 2);
+    addLocalBox((doorHalf + halfW) / 2, halfD - wall / 2, (halfW - doorHalf) / 2, wall / 2);
   }
 
   // Global ground height: the highest island surface at (x, z). Far from
