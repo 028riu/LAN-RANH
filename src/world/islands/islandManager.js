@@ -172,8 +172,9 @@ export class IslandManager {
         return;
       }
 
+      let entity = null;
       try {
-        const entity = asset.resource.instantiateRenderEntity();
+        entity = asset.resource.instantiateRenderEntity();
         entity.name = `${assetId} GLB`;
         // Uploaded GLBs use different authoring units. Measure the imported
         // mesh and normalize it to the target height configured per building.
