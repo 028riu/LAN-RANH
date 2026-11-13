@@ -7,7 +7,9 @@ export const WORLD_CONFIG = {
     walkSpeed: 4.8,
     runSpeed: 9.0,
     jumpVelocity: 8.4,
-    deepWaterLimit: -1.4,   // terrain below this Y blocks walking
+    deepWaterLimit: -1.4,   // terrain below this Y is treated as deep water
+    swimSpeed: 3.2,
+    swimSurfaceOffset: 0.15,
     worldBoundRadius: 1500
   },
 

@@ -55,6 +55,7 @@ export function layout(env) {
 
   // Ruined settler shack deep in the woods
   P('house_wood_small', { position: [-38, -18], rotationY: 150 });
+  P('house_wood_large', { position: [34, -34], rotationY: -35 });
   P('wooden_fence', { position: [-33, -12], rotationY: 70, length: 4.5 });
   P('treasure_chest', { position: [-34, -22], rotationY: 210, variant: 1 });
   P('wooden_barrel', { position: [-41, -14], variant: 1 });

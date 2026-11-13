@@ -76,6 +76,8 @@ export function layout(env) {
     { x: 0, z: 100, r: 16 }
   ];
   if (ruins) exclusions.push({ x: ruins.x, z: ruins.z, r: 16 });
+  // Keep the oasis settlement clear while preserving the palms around the water.
+  exclusions.push({ x: 26, z: -52, r: 15 });
 
   env.scatter({
     asset: 'cactus', count: 46, seed: 301,
@@ -168,6 +170,21 @@ export function layout(env) {
   // --- Dry oasis (10, -52): waterhole + palms -----------------------------------
   const oasis = def.zones.find((z) => z.id === 'oasis');
   if (oasis) {
+    // A small waystation gives the oasis a clear destination beyond the waterhole.
+    // The house is deliberately offset east so it does not cover the pond.
+    P('house_wood_small', { position: [26, -52], rotationY: 35, scale: 1.25 });
+    P('house_stone', { position: [-52, 18], rotationY: 125, scale: 0.95 });
+    P('wooden_fence', { position: [20, -43], rotationY: 35, length: 4.5 });
+    P('wooden_fence', { position: [32, -44], rotationY: 125, length: 4.5 });
+    P('wooden_bench', { position: [18, -54], rotationY: 125, length: 2.0 });
+    P('campfire', { position: [19, -61] });
+    P('wooden_barrel', { position: [33, -58], variant: 1 });
+    P('wooden_crate', { position: [31, -60], rotationY: 18 });
+    P('signpost', {
+      position: [20, -46], rotationY: 35,
+      signs: [{ text: 'OASIS WAYSTATION', yaw: 0 }]
+    });
+
     const oy = env.groundAt(oasis.x, oasis.z);
     env.extraKit((kit) => {
       const mats = env.mats.forTheme(T);
