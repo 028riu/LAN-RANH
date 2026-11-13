@@ -95,7 +95,7 @@ export function buildWorld(app, pc) {
     shadowResolution: 2048,
     shadowDistance: 180,
     normalOffsetBias: 0.04,
-    bias: 0. tumb
+    bias: 0.0001
   });
   sun.setLocalEulerAngles(48, 32, 0);
   root.addChild(sun);
