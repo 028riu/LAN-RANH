@@ -105,9 +105,9 @@ export function buildWorld(app, pc) {
   fill.setLocalEulerAngles(145, -35, 0);
   root.addChild(fill);
 
-  app.scene.fog = 'linear';
-  app.scene.fogColor = new pc.Color(0.58, 0.66, 0.66);
-  app.scene.fogStart = 100;
-  app.scene.fogEnd = 360;
+  app.scene.fog.type = 'linear';
+  app.scene.fog.color = new pc.Color(0.58, 0.66, 0.66);
+  app.scene.fog.start = 100;
+  app.scene.fog.end = 360;
   app.scene.skyboxMip = 0;
 }
