@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#101a19" />
+  <meta name="description" content="LẰN RANH — Vượt qua lằn ranh. Khám phá giới hạn." />
+  <title>LẰN RANH — Exploration Prototype</title>
+</head>
+<body>
+  <main id="game-shell">
+    <canvas id="application-canvas" aria-label="Thế giới 3D Lằn Ranh"></canvas>
+    <section id="loading-screen">
+      <div class="loading-mark">LR<span>.</span></div>
+      <div class="loading-title">LẰN RANH</div>
+      <div class="loading-subtitle">VƯỢT QUA LẰN RANH. KHÁM PHÁ GIỚI HẠN.</div>
+      <div class="loading-track"><i></i></div>
+      <div id="loading-status">ĐANG KHỞI TẠO THẾ GIỚI...</div>
+    </section>
+    <section id="start-screen" class="hidden">
+      <div class="eyebrow">BẢN THỬ NGHIỆM  •  0.1.0</div>
+      <h1>LẰN RANH</h1>
+      <p>Miền cao nguyên đang chờ bạn khám phá.</p>
+      <button id="start-button">BẮT ĐẦU KHÁM PHÁ <span>→</span></button>
+      <div class="start-hint">WASD DI CHUYỂN <b>·</b> SHIFT CHẠY <b>·</b> SPACE NHẢY <b>·</b> ESC THOÁT CON TRỎ</div>
+    </section>
+    <div id="hud" class="hidden">
+      <div class="hud-brand"><strong>LR</strong><span>LẰN RANH</span></div>
+      <div class="hud-location"><i></i><span>CAO NGUYÊN — KHU VỰC 01</span></div>
+      <div class="hud-stats"><span id="coordinates">X 000 · Z 000</span><span id="fps">-- FPS</span></div>
+      <div class="crosshair"><i></i><b></b></div>
+      <div class="hud-bottom"><span>WASD <small>DI CHUYỂN</small></span><span>SHIFT <small>CHẠY</small></span><span>SPACE <small>NHẢY</small></span></div>
+      <div id="notice" class="notice">Chào mừng đến với Lằn Ranh.</div>
+    </div>
+    <div id="pause-screen" class="hidden">
+      <div class="pause-card"><div class="eyebrow">TẠM DỪNG</div><h2>ĐANG CHỜ BẠN</h2><p>Nhấn tiếp tục để quay lại hành trình.</p><button id="resume-button">TIẾP TỤC</button></div>
+    </div>
+  </main>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
