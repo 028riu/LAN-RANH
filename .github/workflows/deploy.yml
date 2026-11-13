@@ -27,7 +27,9 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Build game
-        run: npm run build
+        # Run Vite through Node directly because the tracked Windows node_modules
+        # can leave the .bin/vite shim without executable permission on Linux.
+        run: node ./node_modules/vite/bin/vite.js build
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
