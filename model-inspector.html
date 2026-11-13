@@ -37,10 +37,11 @@ input{width:100%;margin:8px 0}.filters{display:flex;gap:6px;flex-wrap:wrap}.filt
  <div id="info"><strong>Chưa chọn mô hình</strong><small>Chọn một GLB trong danh sách bên trái để xem trực tiếp, xoay và kiểm tra kích thước.</small></div>
 </section>
 </main>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 <script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
-import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/controls/OrbitControls.js';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 const OWNER='028riu', REPO='LAN-RANH', ROOT='public/assets/models';
 const list=document.querySelector('#assetList'), status=document.querySelector('#status'), info=document.querySelector('#info'), topStatus=document.querySelector('#topStatus'), count=document.querySelector('#count');
