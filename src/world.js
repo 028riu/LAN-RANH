@@ -1,4 +1,5 @@
 const MODEL_BASE = `${import.meta.env.BASE_URL}assets/models/`;
+const MANIFEST_URL = MODEL_BASE + 'manifest.json';
 
 const MODEL_FILES = {
   terrain: 'terrain/highland_terrain.glb',
@@ -7,6 +8,17 @@ const MODEL_FILES = {
   outpost: 'structures/observation_outpost.glb',
   boulder: 'nature/boulder.glb'
 };
+
+async function readModelManifest() {
+  try {
+    const response = await fetch(MANIFEST_URL, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Manifest HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.warn('[LẰN RANH] Không đọc được manifest model; bỏ qua tải GLB.', error);
+    return {};
+  }
+}
 
 function loadContainer(app, relativePath) {
   const url = MODEL_BASE + relativePath;
@@ -71,16 +83,11 @@ function makeForestPlacements() {
     seed = (seed * 1664525 + 1013904223) >>> 0;
     return seed / 4294967296;
   };
-
   for (let i = 0; i < 105; i++) {
     const x = (random() - 0.5) * 270;
     const z = (random() - 0.5) * 270;
     if (Math.abs(x) < 15 && z > -100 && z < 78) continue;
-    placements.push({
-      position: [x, 0, z],
-      rotation: random() * 360,
-      scale: 0.82 + random() * 0.48
-    });
+    placements.push({ position: [x, 0, z], rotation: random() * 360, scale: 0.82 + random() * 0.48 });
   }
   return placements;
 }
@@ -92,16 +99,11 @@ function makeRockPlacements() {
     seed = (seed * 1664525 + 1013904223) >>> 0;
     return seed / 4294967296;
   };
-
   for (let i = 0; i < 32; i++) {
     const x = (random() - 0.5) * 230;
     const z = (random() - 0.5) * 230;
     if (Math.abs(x) < 18 && z > -95 && z < 80) continue;
-    placements.push({
-      position: [x, 0, z],
-      rotation: random() * 360,
-      scale: 0.72 + random() * 1.1
-    });
+    placements.push({ position: [x, 0, z], rotation: random() * 360, scale: 0.72 + random() * 1.1 });
   }
   return placements;
 }
@@ -114,27 +116,27 @@ export async function buildWorld(app, pc, onProgress = () => {}) {
   const required = ['terrain', 'pine', 'station', 'outpost'];
   const optional = ['boulder'];
   const allKeys = [...required, ...optional];
+  const manifest = await readModelManifest();
   const loaded = new Map();
-  const failures = [];
+  const missing = allKeys.filter((key) => manifest[key] !== true);
 
+  onProgress('KIỂM TRA TÀI NGUYÊN 3D...');
+  const available = allKeys.filter((key) => manifest[key] === true);
   let completed = 0;
-  onProgress('ĐANG TẢI ĐỊA HÌNH 3D...');
 
-  await Promise.all(allKeys.map(async (key) => {
+  await Promise.all(available.map(async (key) => {
     try {
       loaded.set(key, await loadContainer(app, MODEL_FILES[key]));
     } catch (error) {
-      failures.push({ key, error });
-      console.warn(`[LẰN RANH] Không tải được model "${key}":`, error);
+      missing.push(key);
+      console.warn(`[LẰN RANH] Model "${key}" được đánh dấu có sẵn nhưng tải thất bại:`, error);
     } finally {
       completed++;
-      onProgress(`ĐANG TẢI MODEL 3D... ${completed}/${allKeys.length}`);
+      onProgress(`ĐANG TẢI MODEL 3D... ${completed}/${available.length}`);
     }
   }));
 
-  if (loaded.has('terrain')) {
-    addModel(loaded.get('terrain'), root, 'Highland Terrain', [0, 0, 0]);
-  }
+  if (loaded.has('terrain')) addModel(loaded.get('terrain'), root, 'Highland Terrain', [0, 0, 0]);
 
   if (loaded.has('pine')) {
     const pine = loaded.get('pine');
@@ -143,13 +145,8 @@ export async function buildWorld(app, pc, onProgress = () => {}) {
     }
   }
 
-  if (loaded.has('station')) {
-    addModel(loaded.get('station'), root, 'Field Station', [0, 0, -57]);
-  }
-
-  if (loaded.has('outpost')) {
-    addModel(loaded.get('outpost'), root, 'Observation Outpost', [35, 0, -82]);
-  }
+  if (loaded.has('station')) addModel(loaded.get('station'), root, 'Field Station', [0, 0, -57]);
+  if (loaded.has('outpost')) addModel(loaded.get('outpost'), root, 'Observation Outpost', [35, 0, -82]);
 
   if (loaded.has('boulder')) {
     const boulder = loaded.get('boulder');
@@ -158,17 +155,15 @@ export async function buildWorld(app, pc, onProgress = () => {}) {
     }
   }
 
-  const missingRequired = required.filter((key) => !loaded.has(key));
-  if (missingRequired.length) {
-    onProgress(`THIẾU MODEL: ${missingRequired.join(', ')}`);
-  } else {
-    onProgress('ĐÃ TẢI XONG CÁC MODEL 3D');
-  }
+  const missingRequired = required.filter((key) => missing.includes(key) || !loaded.has(key));
+  onProgress(missingRequired.length
+    ? `ĐANG CHỜ MODEL 3D: ${missingRequired.join(', ')}`
+    : 'ĐÃ TẢI XONG CÁC MODEL 3D');
 
   return {
     root,
     loaded: [...loaded.keys()],
     missingRequired,
-    optionalFailures: failures.filter(({ key }) => optional.includes(key)).map(({ key }) => key)
+    optionalFailures: optional.filter((key) => missing.includes(key))
   };
 }
