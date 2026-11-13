@@ -29,9 +29,9 @@ export function createExplorer(app, pc, camera, canvas) {
       const speed = keys.ShiftLeft || keys.ShiftRight ? 12 : 7;
       const radians = yaw * Math.PI / 180;
       move.set(
-        Math.sin(radians) * forward + Math.cos(radians) * side,
+        -Math.sin(radians) * forward + Math.cos(radians) * side,
         0,
-        Math.cos(radians) * forward - Math.sin(radians) * side
+        -Math.cos(radians) * forward - Math.sin(radians) * side
       );
       if (move.lengthSq() > 1) move.normalize();
       position.x += move.x * speed * dt;
