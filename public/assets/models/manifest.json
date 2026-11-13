@@ -1,7 +1,7 @@
 {
   "terrain": false,
-  "pine": false,
-  "station": false,
-  "outpost": false,
-  "boulder": false
+  "pine": true,
+  "station": true,
+  "outpost": true,
+  "boulder": true
 }
