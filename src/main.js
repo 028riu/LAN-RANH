@@ -37,8 +37,10 @@ camera.addComponent('camera', {
 });
 app.root.addChild(camera);
 
-loadingStatus.textContent = 'ĐANG DỰNG ĐỊA HÌNH...';
-buildWorld(app, pc);
+loadingStatus.textContent = 'ĐANG TẢI CÁC MODEL 3D...';
+const worldResult = await buildWorld(app, pc, (message) => {
+  loadingStatus.textContent = message;
+});
 const explorer = createExplorer(app, pc, camera, canvas);
 
 let started = false;
@@ -95,4 +97,17 @@ app.on('update', (dt) => {
 
 loading.classList.add('hidden');
 startScreen.classList.remove('hidden');
-loadingStatus.textContent = 'HOÀN TẤT';
+
+const startButton = document.getElementById('start-button');
+const startDescription = document.getElementById('start-description');
+if (worldResult.missingRequired.length) {
+  startDescription.textContent =
+    'Chưa thể bắt đầu: thiếu model 3D bắt buộc (' +
+    worldResult.missingRequired.join(', ') +
+    '). Hãy thêm các file GLB theo hướng dẫn trong README.';
+  startButton.disabled = true;
+  startButton.textContent = 'ĐANG CHỜ MODEL 3D';
+} else {
+  startDescription.textContent = 'Miền cao nguyên đang chờ bạn khám phá.';
+  loadingStatus.textContent = 'HOÀN TẤT';
+}
