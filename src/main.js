@@ -1,5 +1,5 @@
 import * as pc from 'playcanvas';
-import './style.css';
+import '../style.css';
 import { buildWorld } from './world.js';
 import { createExplorer } from './player.js';
 
