@@ -47,11 +47,11 @@ function loadContainer(app, relativePath) {
   });
 }
 
-function addModel(asset, parent, name, position, rotation = 0, scale = 1) {
+function addModel(asset, parent, name, position, rotation = [0, 0, 0], scale = 1) {
   const entity = asset.resource.instantiateRenderEntity();
   entity.name = name;
   entity.setLocalPosition(position[0], position[1], position[2]);
-  entity.setLocalEulerAngles(0, rotation, 0);
+  entity.setLocalEulerAngles(rotation[0], rotation[1], rotation[2]);
   entity.setLocalScale(scale, scale, scale);
   parent.addChild(entity);
   return entity;
@@ -221,17 +221,22 @@ export async function buildWorld(app, pc, onProgress = () => {}) {
   if (loaded.has('pine')) {
     const pine = loaded.get('pine');
     for (const [index, item] of makeForestPlacements().entries()) {
-      addModel(pine, root, `Pine Tree ${index + 1}`, item.position, item.rotation, item.scale);
+      // Bù rotation -90° quanh X có sẵn trong GLB để thân cây dựng thẳng.
+      // Scale 3.5 đưa chiều cao cây về khoảng 6 m.
+      addModel(pine, root, `Pine Tree ${index + 1}`, item.position, [90, item.rotation, 0], item.scale * 3.5);
     }
   }
 
   if (loaded.has('station')) {
     const x = 0, z = -57;
-    addModel(loaded.get('station'), root, 'Field Station', [x, terrainHeight(x, z), z], 0, 1);
+    // GLB nhà trạm có kích thước gốc khoảng 774 × 768 × 1189 đơn vị.
+    // Scale 0.01 đưa nhà về khoảng 7.7 × 7.7 × 11.9 m; nâng nửa chiều cao để đáy chạm đất.
+    addModel(loaded.get('station'), root, 'Field Station', [x, terrainHeight(x, z) + 3.85, z], [0, 0, 0], 0.01);
   }
   if (loaded.has('outpost')) {
     const x = 35, z = -82;
-    addModel(loaded.get('outpost'), root, 'Observation Outpost', [x, terrainHeight(x, z), z], 0, 1);
+    // Chiều cao gốc khoảng 1.45 m; scale 4.8 đưa tháp lên gần 7 m.
+    addModel(loaded.get('outpost'), root, 'Observation Outpost', [x, terrainHeight(x, z), z], [0, 0, 0], 4.8);
   }
 
   const missingRequired = required.filter((key) => missing.includes(key) || !loaded.has(key));
