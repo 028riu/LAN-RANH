@@ -1,6 +1,6 @@
 import * as pc from 'playcanvas';
 import '../style.css';
-import { buildWorld } from './world.js';
+import { buildWorld, terrainHeight } from './world.js';
 import { createExplorer } from './player.js';
 
 const canvas = document.getElementById('application-canvas');
@@ -41,7 +41,7 @@ loadingStatus.textContent = 'ĐANG TẢI CÁC MODEL 3D...';
 const worldResult = await buildWorld(app, pc, (message) => {
   loadingStatus.textContent = message;
 });
-const explorer = createExplorer(app, pc, camera, canvas);
+const explorer = createExplorer(app, pc, camera, canvas, terrainHeight);
 
 let started = false;
 let paused = false;
