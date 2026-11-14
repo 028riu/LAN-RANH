@@ -10,7 +10,7 @@ const MODEL_FILES = {
 const WORLD_SIZE = 400;
 const HALF_WORLD = WORLD_SIZE / 2;
 
-function terrainHeight(x, z) {
+export function terrainHeight(x, z) {
   const broad =
     5.8 * Math.sin(x * 0.018 + 0.7) * Math.cos(z * 0.015) +
     4.2 * Math.sin(z * 0.026 + x * 0.009) +
