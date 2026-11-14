@@ -1,11 +1,11 @@
-export function createExplorer(app, pc, camera, canvas) {
+export function createExplorer(app, pc, camera, canvas, getGroundHeight = () => 0) {
   const keys = Object.create(null);
   let active = false;
   let yaw = 0;
   let pitch = 0;
   let verticalVelocity = 0;
   let grounded = true;
-  const position = new pc.Vec3(0, 2, 28);
+  const position = new pc.Vec3(0, getGroundHeight(0, 28) + 2, 28);
   const move = new pc.Vec3();
 
   camera.setPosition(position);
@@ -39,7 +39,7 @@ export function createExplorer(app, pc, camera, canvas) {
       if (keys.Space && grounded) { verticalVelocity = 7.2; grounded = false; }
       verticalVelocity -= 19 * dt;
       position.y += verticalVelocity * dt;
-      if (position.y <= 2) { position.y = 2; verticalVelocity = 0; grounded = true; }
+      const floorY = getGroundHeight(position.x, position.z) + 2;\n      if (position.y <= floorY) { position.y = floorY; verticalVelocity = 0; grounded = true; }
       position.x = Math.max(-195, Math.min(195, position.x));
       position.z = Math.max(-195, Math.min(195, position.z));
       camera.setPosition(position);
