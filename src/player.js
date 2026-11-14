@@ -39,7 +39,8 @@ export function createExplorer(app, pc, camera, canvas, getGroundHeight = () => 
       if (keys.Space && grounded) { verticalVelocity = 7.2; grounded = false; }
       verticalVelocity -= 19 * dt;
       position.y += verticalVelocity * dt;
-      const floorY = getGroundHeight(position.x, position.z) + 2;\n      if (position.y <= floorY) { position.y = floorY; verticalVelocity = 0; grounded = true; }
+      const floorY = getGroundHeight(position.x, position.z) + 2;
+      if (position.y <= floorY) { position.y = floorY; verticalVelocity = 0; grounded = true; }
       position.x = Math.max(-195, Math.min(195, position.x));
       position.z = Math.max(-195, Math.min(195, position.z));
       camera.setPosition(position);
